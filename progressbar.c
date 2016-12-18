@@ -12,14 +12,15 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
 BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 NONINFRINGEMENT. 
-#IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
 OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
- */
+*/
 
 /*
  *		progressbar.c
+ *
+ *		int printProgress(int pos, int full)
  *
  *		int pos		完了した作業工程の数
  *		int full	全作業工程の数
@@ -53,6 +54,33 @@ int printProgress(int pos, int full){
 	/* 21段階のプログレスバーを表示するにあたって、fullに対するposの割合を0から20の21段階で表したい */
 	bar = pos * 20 / full;	// 0 <= pos <= 20	（但しposは整数）
 	
+	/* 表示部 */
+	printf("|");
+	
+	for(i = 0; i < bar; i++){
+		printf("*");
+	}
+	for(i = bar; i < 20; i++){
+		printf("-");
+	}
+	printf("|%5.1f%%    NUM:[ %d / %d ]\n", per, pos, full);
+	
+	return 0;
+}
+
+// NUM表示のないシンプルなバージョンも用意する
+int simpleProgress(int pos, int full){
+	int i, bar;
+	float per = (float)pos / full * 100;	// 進行状況を小数点で保持する
+	
+	/* 不正なposを入力した場合は異常終了する */
+	if(pos < 0 || full < pos){
+		printf("progress bar error\n");
+		return 1;
+	}
+	
+	/* 21段階のプログレスバーを表示するにあたって、fullに対するposの割合を0から20の21段階で表したい */
+	bar = pos * 20 / full;	// 0 <= pos <= 20	（但しposは整数）
 	
 	/* 表示部 */
 	printf("|");
@@ -60,12 +88,10 @@ int printProgress(int pos, int full){
 	for(i = 0; i < bar; i++){
 		printf("*");
 	}
-	
 	for(i = bar; i < 20; i++){
 		printf("-");
 	}
-	
-	printf("|%5.1f%%    NUM:[ %d / %d ]\n", per, pos, full);
+	printf("|%5.1f%%\n", per);
 	
 	return 0;
 }
