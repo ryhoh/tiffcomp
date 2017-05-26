@@ -36,7 +36,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-//#include <pthread.h>
 #include "progressbar.h"
 
 #define JOB 3000	// 比較明合成処理をフェーズ化して行う時、一度に処理するピクセルの数
@@ -46,13 +45,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 typedef struct _tiff {
 	FILE *fp;				/* ファイルポインタ */
-	//int idfPos;				/* IDF情報の開始位置 */
 	int imgHeight;			/* 画像の縦幅 */
 	int imgWidth;			/* 画像の横幅 */
 	long imgPos;			/* 画像データの開始位置 */
 } TIFF;
 
-//void *preComp(void *threadArgs);
 int comp(int fileNum, char *file[]);
 int readValue(TIFF *image);
 int checkPixel(TIFF image[], FILE *fpw, int fileNum);
@@ -70,17 +67,17 @@ int main(int argc, char *argv[]){
 	
 	if(argc < 2){		// 合成ファイルは2枚以上必要
 		printf("lack of file error\n");
-		return 1;
+		exit(1);
 	}
 	
 	// 合成
 	if(comp(argc, &argv[1])){	
 		printf("comp error\n");
-		return 1;
+		exit(1);
 	}
 	
-	printf("done %fs\n", (float)(clock() - timer) / CLOCKS_PER_SEC);
-	return 0;
+	printf("done\n %fs\n", (float)(clock() - timer) / CLOCKS_PER_SEC);
+	exit(0);
 }
 
 // ファイル数fileNum, ファイル名へのポインタ配列*file[]を引数とし、合成の手続きを行う
@@ -138,9 +135,9 @@ int comp(int fileNum, char *file[]){
 	if(checkPixel(input, fpw, fileNum))	// 画像処理
 		return 1;
 		
-	for(i = 0; i < fileNum; i++){
+	for(i = 0; i < fileNum; i++)
 		fclose(input[i].fp);
-	}
+	
 	fclose(fpw);
 	free(input);
 	
@@ -164,7 +161,6 @@ int readValue(TIFF *image){
 	fread(&num, 2, 1, fp);	// エントリカウント数の確認
 		
 	// エントリの内容　（画像データの開始位置はファイルごとに違うため、入力ファイル2についても開始位置を調べる）
-	//buf = 0;	// buf内に数値が残っている場合があるようなので、エントリタグ前でリセットする
 	for(i = 0; i < num; i++){
 		fread(&header, 2, 1, fp); // エントリタグをチェック
 		
@@ -234,19 +230,17 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 			fwrite(&array[j], BYTENUM, 1, fpw);
 		
 		// 途中経過の表示
-		if(simpleProgress(i, phaze))
+		if(simpleProgress(i, phaze) && (i%5) == 0)		// 表示は5回に1回くらいでいい
 			return 1;
 	}
 	/*-------- 残った領域を追加処理 --------*/
 	clearArray(array, job);
-	for(j = 0; j < fileNum; j++){
+	for(j = 0; j < fileNum; j++)
 		compare(array, &image[j], jobe);
-	}
-	for(j = 0; j < jobe; j++){		// 配列から1バイトずつ書き込み
-		fwrite(&array[j], BYTENUM, 1, fpw);
-	}
-	/*------------------------------------------*/
 	
+	for(j = 0; j < jobe; j++)		// 配列から1バイトずつ書き込み
+		fwrite(&array[j], BYTENUM, 1, fpw);
+	/*------------------------------------------*/
 	if(simpleProgress(i, phaze))	// この時i == phazeなので100%が表示される
 		return 1;
 	
