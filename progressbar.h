@@ -1,3 +1,7 @@
+// Copyright (c) 2016 Tetsuya Hori
+// Released under the MIT license
+// https://opensource.org/licenses/mit-license.php
+
 /*		int printProgress(int pos, int full)
  *
  *		int pos		完了した作業工程の数
