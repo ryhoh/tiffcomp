@@ -37,9 +37,8 @@ typedef struct _tiff {
 int comp(int fileNum, char *file[]);
 int readValue(TIFF *image);
 int checkPixel(TIFF image[], FILE *fpw, int fileNum);
-void compare(int array[], TIFF *image, int pixNum);
-unsigned long culcBrightness(int *rgb);
-void clearArray(int array[], int num);
+void compare(unsigned char array[], FILE *fp, int pixNum);
+void clearArray(unsigned char array[], int num);
 
 int main(int argc, char *argv[]){
 	int i;
@@ -183,17 +182,17 @@ int readValue(TIFF *image){
 // image[] はTIFF型構造体配列
 // fileNum個の配列を引数に取る
 int checkPixel(TIFF image[], FILE *fpw, int fileNum){
-	int i = 0, j;
+	int i = 0, j, cur;
 	int temp;
 	int pixNum = image[0].imgHeight * image[0].imgWidth;	// 総画素数を計算
 	
 	/* 比較処理のフェーズ化を行う */
-	const int JOB = 3000;		// 比較明合成処理をフェーズ化して行う時、一度に処理する画素数
+	const int JOB = 10000;		// 比較明合成処理をフェーズ化して行う時、一度に処理する画素数
 	const int job = JOB * 3;		// 1フェーズに処理するバイト数 = 1フェーズに処理する画素数 * 3 (RGB)
 	const int JOBE = pixNum % JOB;	// 最後に追加で処理する画素数
 	const int jobe = JOBE * 3;
-	int array[JOB * 3] = {0};	// 色データを格納
 	const int phaze = pixNum / JOB;		// 総フェーズ数
+	unsigned char array[JOB * 3] = {0};	// 色データを格納
 	
 	/* 作業開始前に1度プログレスバーを見せておく */
 	if(simpleProgress(i, phaze))	// 何フェーズ終わったか == 全体のうちiフェーズ終わった
@@ -209,11 +208,17 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 	for(i = 0; i < phaze; i++){
 		clearArray(array, job);
 		for(j = 0; j < fileNum; j++)
-			compare(array, &image[j], JOB);
+			compare(array, image[j].fp, JOB);
 		
-		// 配列から16バイトずつ書き込み
-		for(j = 0; j < job; j++)
+		// 配列から書き込み
+		cur = 0;
+		for(j = 0; j < job / 16; j++) {
+			fwrite(&array[j*16], BYTENUM, 16, fpw);
+			cur += 16;
+		}
+		for(j = cur; j < job; j++) {
 			fwrite(&array[j], BYTENUM, 1, fpw);
+		}
 		
 		// 途中経過の表示
 		if(simpleProgress(i, phaze) && (i%5) == 0)		// 表示は5回に1回くらいでいい
@@ -221,12 +226,19 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 	}
 	printf("normal phaze end\n");
 	/*-------- 残った領域を追加処理 --------*/
-	clearArray(array, job);
+	clearArray(array, jobe);
 	for(j = 0; j < fileNum; j++)
-		compare(array, &image[j], JOBE);
+		compare(array, image[j].fp, JOBE);
 	
-	for(j = 0; j < jobe; j++)		// 配列から1バイトずつ書き込み
+	// 配列から書き込み
+	cur = 0;
+	for(j = 0; j < jobe / 16; j++) {
+		fwrite(&array[j*16], BYTENUM, 16, fpw);
+		cur += 16;
+	}
+	for(j = cur; j < jobe; j++) {
 		fwrite(&array[j], BYTENUM, 1, fpw);
+	}
 	/*------------------------------------------*/
 	if(simpleProgress(i, phaze))	// この時i == phazeなので100%が表示される
 		return 1;
@@ -237,31 +249,38 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 
 // numは画素数
 // array[]の要素とimageのデータで比較明合成を行い、結果をarray[]に入れる
-void compare(int array[], TIFF *image, int pixNum){
+void compare(unsigned char array[], FILE *fp, int pixNum){
 	int i, j;
-	int pixel[3] = {0};
-	FILE *fp = image->fp;	// 構造体のメンバに何度もアクセスしないため
+	int dataSize = pixNum*3;
+	unsigned char *pixels = (unsigned char *)malloc(sizeof(unsigned char) * dataSize);
+	if(pixels == NULL){
+		printf("malloc fault\n");
+		exit(1);
+	}
 	
+	// imageから対象データを全て読み込む
+	int cur=0;
+	for(i = 0; i < dataSize / 16; i++) {	// 高速化のため16bitずつ読む
+		fread(&pixels[cur], 1, 16, fp);
+		cur += 16;
+	}
+	for(i = cur; i < dataSize; i++) {
+		fread(&pixels[i], 1, 1, fp);
+	}
+	
+	// 2つの入力ファイルの輝度をそれぞれ計算して比較
 	for(i = 0; i < pixNum; i++){
-		for(j = 0; j < 3; j++)	// ピクセルのRGBの各数値を取得
-			fread(&pixel[j], BYTENUM, 1, fp);
-			
-		// 2つの入力ファイルの輝度をそれぞれ計算して比較
-		if(culcBrightness(&array[i * 3]) < culcBrightness(pixel)){
-			for(j = 0; j < 3; j++)
-				array[i * 3 + j] = pixel[j];
+		if(306*array[i * 3]+601*array[i * 3 + 1]+117*array[i * 3 + 2] < 306*pixels[i * 3]+601*pixels[i * 3 + 1]+117*pixels[i * 3 + 2]) {
+			for(j = i*3; j < i*3 + 3; j++)
+				array[j] = pixels[j];
 		}
 	}
-}
-
-// 輝度計算を行う
-// pchansblog.exblog.jp/26051068/ 
-unsigned long culcBrightness(int *rgb){
-	return 306*(unsigned long)rgb[0]+601*(unsigned long)rgb[1]+117*(unsigned long)rgb[2]+512;
+	
+	free(pixels);
 }
 
 // 配列のクリア
-void clearArray(int array[], int num){
+void clearArray(unsigned char array[], int num){
 	int i = 0;
 	while(i < num)
 		array[i++] = 0;
