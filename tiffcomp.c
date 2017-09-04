@@ -23,7 +23,6 @@
 #include <unistd.h>
 #include "progressbar.h"
 
-#define JOB 3000	// 比較明合成処理をフェーズ化して行う時、一度に処理するピクセルの数
 // 大きいほど高速だが、環境によっては大きすぎるとセグフォ MBAでは3000が安定
 #define OUTPUTFILE "output.tif"	// 出力するファイルの名前
 #define BYTENUM 1 	// 1Byte = 8bitのTIFFを想定
@@ -38,7 +37,7 @@ typedef struct _tiff {
 int comp(int fileNum, char *file[]);
 int readValue(TIFF *image);
 int checkPixel(TIFF image[], FILE *fpw, int fileNum);
-void compare(int array[], TIFF *image2, int num);
+void compare(int array[], TIFF *image, int pixNum);
 unsigned long culcBrightness(int *rgb);
 void clearArray(int array[], int num);
 
@@ -61,7 +60,7 @@ int main(int argc, char *argv[]){
 		exit(1);
 	}
 	
-	printf("done\n %fs\n", (float)(clock() - timer) / CLOCKS_PER_SEC);
+	printf("done %fs\n", (float)(clock() - timer) / CLOCKS_PER_SEC);
 	exit(0);
 }
 
@@ -126,7 +125,7 @@ int comp(int fileNum, char *file[]){
 	fclose(fpw);
 	free(input);
 	
-	printf("done\n");
+	printf("file closed\n");
 	return 0;
 }
 
@@ -189,10 +188,12 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 	int pixNum = image[0].imgHeight * image[0].imgWidth;	// 総画素数を計算
 	
 	/* 比較処理のフェーズ化を行う */
-	int job = JOB * 3;		// 1フェーズに処理するバイト数 = 1フェーズに処理する画素数 * 3 (RGB)
-	int jobe = (pixNum % JOB) * 3;	// 最後に追加で処理するバイト数
-	int array[JOB * 3] = {0};	// 要素job個
-	int phaze = pixNum / JOB;	// 総フェーズ数
+	const int JOB = 3000;		// 比較明合成処理をフェーズ化して行う時、一度に処理する画素数
+	const int job = JOB * 3;		// 1フェーズに処理するバイト数 = 1フェーズに処理する画素数 * 3 (RGB)
+	const int JOBE = pixNum % JOB;	// 最後に追加で処理する画素数
+	const int jobe = JOBE * 3;
+	int array[JOB * 3] = {0};	// 色データを格納
+	const int phaze = pixNum / JOB;		// 総フェーズ数
 	
 	/* 作業開始前に1度プログレスバーを見せておく */
 	if(simpleProgress(i, phaze))	// 何フェーズ終わったか == 全体のうちiフェーズ終わった
@@ -218,28 +219,30 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 		if(simpleProgress(i, phaze) && (i%5) == 0)		// 表示は5回に1回くらいでいい
 			return 1;
 	}
+	printf("normal phaze end\n");
 	/*-------- 残った領域を追加処理 --------*/
 	clearArray(array, job);
 	for(j = 0; j < fileNum; j++)
-		compare(array, &image[j], jobe);
+		compare(array, &image[j], JOBE);
 	
 	for(j = 0; j < jobe; j++)		// 配列から1バイトずつ書き込み
 		fwrite(&array[j], BYTENUM, 1, fpw);
 	/*------------------------------------------*/
 	if(simpleProgress(i, phaze))	// この時i == phazeなので100%が表示される
 		return 1;
+	printf("additional phaze end\n");
 	
 	return 0;
 }
 
 // numは画素数
 // array[]の要素とimageのデータで比較明合成を行い、結果をarray[]に入れる
-void compare(int array[], TIFF *image, int num){
+void compare(int array[], TIFF *image, int pixNum){
 	int i, j;
 	int pixel[3] = {0};
 	FILE *fp = image->fp;	// 構造体のメンバに何度もアクセスしないため
 	
-	for(i = 0; i < num; i++){
+	for(i = 0; i < pixNum; i++){
 		for(j = 0; j < 3; j++)	// ピクセルのRGBの各数値を取得
 			fread(&pixel[j], BYTENUM, 1, fp);
 			
