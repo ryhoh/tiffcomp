@@ -31,8 +31,9 @@ namespace ryhohTiff
         // Tiff(std::string fileName): fileName(fileName) {}
         Tiff() {}
         virtual ~Tiff() {}
-        inline int getParam(int key) { return this->param_[key]; };
-        inline void setParam(int key, int value) { this->param_[key] = value; };
+
+        inline int getParam(int key) { return this->param_[key]; }
+        inline void setParam(int key, int value) { this->param_[key] = value; }
     };
 
 
@@ -51,11 +52,13 @@ namespace ryhohTiff
         InputTiff() = delete;
         InputTiff(const std::string &fileName);
         ~InputTiff();
+
         void loadParam();
         void checkBitDepth();
         short readShort();
         int readInt();
-        std::ifstream &getFin() { return this->fin_; };
+
+        std::ifstream &getFin() { return this->fin_; }
     };
 
 
@@ -67,11 +70,11 @@ namespace ryhohTiff
         OutputTiff() = delete;
         OutputTiff(const std::string &fileName);
         ~OutputTiff();
-        void copyWriteFrom(InputTiff &inputTiff);
-        // void compositeWith(InputTiff inputTiffs[]);
-    };
 
-    // void pile_pixels(OutputTiff &outputTiff, int length, InputTiff inputTiffs[]);
+        void copyWriteFrom(InputTiff &inputTiff);
+
+        std::ofstream &getFout() { return this->fout_; }
+    };
 }
 
 

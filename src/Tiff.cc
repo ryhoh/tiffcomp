@@ -1,4 +1,6 @@
 // 作成 - 2019/03/18 Tetsuya Hori
+#include <cstring>
+#include "../lib/progress.h"
 #include "Tiff.h"
 
 
@@ -93,23 +95,6 @@ void ryhohTiff::OutputTiff::copyWriteFrom(ryhohTiff::InputTiff &inputTiff)
     }
 }
 
-// void ryhohTiff::OutputTiff::compositeWith(ryhohTiff::InputTiff inputTiffs[])
-// {
-//     const int width = inputTiffs[0].getParam(ryhohTiff::WIDTH);
-//     const int height = inputTiffs[0].getParam(ryhohTiff::HEIGHT);
-//     const int pixel_num = width * height;
-// }
-//
-// // todo まずは8bitで動くものを作る
-// void ryhohTiff::pile_n_pixels(
-//     std::vector<unsigned char> &base,
-//     int length,
-//     ryhohTiff::InputTiff inputTiffs[])
-// {
-//     std::vector<unsigned char> res = std::vector<unsigned char>(pixel_num * 3, 0);
-//
-//
-// }
 
 // int comp(int fileNum, char *file[]);
 // int checkPixel(TIFF image[], FILE *fpw, int fileNum);
