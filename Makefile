@@ -8,12 +8,19 @@
 
 test_tiff:	test/test_tiff.cc src/tiff.cc
 	g++-8 -o $@ test/test_tiff.cc src/tiff.cc \
-	-Llib \
-	-lgtest -lgtest_main -lpthread -lprogress \
+	-lgtest -lgtest_main -lpthread \
 	&& ./$@
 
-# Tiff.o:	src/Tiff.cc
-# 	g++-8 src/Tiff.cc -o $@
+test_tiffcomp:	test/test_tiffcomp.cc src/tiffcomp.cc
+	g++-8 -o $@ test/test_tiffcomp.cc src/tiffcomp.cc \
+	-Llib \
+	-lprogress \
+	&& ./$@
+
+# --
 
 clean:
-	rm -f test_tiff tiff.o .copyWriteFrom.tif
+	rm -f \
+	test_tiff tiff.o \
+	test_tiffcomp tiffcomp.o \
+	.copyWriteFrom.tif .runTest.tif

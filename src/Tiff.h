@@ -10,7 +10,7 @@
 
 const std::string OUTPUT_NAME = "output.tif";
 
-namespace ryhohTiff
+namespace ryhoh_tiff
 {
     // 画像データに関するパラメータ
     const short WIDTH = 0x0100;

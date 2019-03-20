@@ -1,10 +1,8 @@
 // 作成 - 2019/03/18 Tetsuya Hori
-#include <cstring>
-#include "../lib/progress.h"
 #include "Tiff.h"
 
 
-ryhohTiff::InputTiff::InputTiff(const std::string &fileName)
+ryhoh_tiff::InputTiff::InputTiff(const std::string &fileName)
 {
     this->fin_.open(fileName, std::ios::binary);
     if (this->fin_.fail())
@@ -16,14 +14,14 @@ ryhohTiff::InputTiff::InputTiff(const std::string &fileName)
     }
 }
 
-ryhohTiff::InputTiff::~InputTiff()
+ryhoh_tiff::InputTiff::~InputTiff()
 {
     this->fin_.close();
 }
 
-void ryhohTiff::InputTiff::loadParam()
+void ryhoh_tiff::InputTiff::loadParam()
 {
-    this->fin_.seekg(ryhohTiff::IDF_PTR, std::ios_base::beg);
+    this->fin_.seekg(ryhoh_tiff::IDF_PTR, std::ios_base::beg);
     const int idf_start = readInt();
     this->fin_.seekg(idf_start, std::ios_base::beg);
     const short idf_entry_num = readShort();
@@ -38,23 +36,23 @@ void ryhohTiff::InputTiff::loadParam()
     this->checkBitDepth();
 }
 
-void ryhohTiff::InputTiff::checkBitDepth()
+void ryhoh_tiff::InputTiff::checkBitDepth()
 {
-    const int bitDepth = this->getParam(ryhohTiff::BIT_DEPTH);
+    const int bitDepth = this->getParam(ryhoh_tiff::BIT_DEPTH);
     if (bitDepth < 17) return ;
 
     this->fin_.seekg(bitDepth, std::ios_base::beg);
-    this->setParam(ryhohTiff::BIT_DEPTH, readShort());
+    this->setParam(ryhoh_tiff::BIT_DEPTH, readShort());
 }
 
-short ryhohTiff::InputTiff::readShort()
+short ryhoh_tiff::InputTiff::readShort()
 {
     BinaryPack binaryPack = BinaryPack();
     this->fin_.read(binaryPack.buf_char, 2);
     return binaryPack.buf_short[0];
 }
 
-int ryhohTiff::InputTiff::readInt()
+int ryhoh_tiff::InputTiff::readInt()
 {
     BinaryPack binaryPack = BinaryPack();
     this->fin_.read(binaryPack.buf_char, 4);
@@ -62,7 +60,7 @@ int ryhohTiff::InputTiff::readInt()
 }
 
 
-ryhohTiff::OutputTiff::OutputTiff(const std::string &fileName)
+ryhoh_tiff::OutputTiff::OutputTiff(const std::string &fileName)
 {
     this->fout_.open(fileName, std::ios::binary);
     if (this->fout_.fail())
@@ -74,12 +72,12 @@ ryhohTiff::OutputTiff::OutputTiff(const std::string &fileName)
     }
 }
 
-ryhohTiff::OutputTiff::~OutputTiff()
+ryhoh_tiff::OutputTiff::~OutputTiff()
 {
     this->fout_.close();
 }
 
-void ryhohTiff::OutputTiff::copyWriteFrom(ryhohTiff::InputTiff &inputTiff)
+void ryhoh_tiff::OutputTiff::copyWriteFrom(ryhoh_tiff::InputTiff &inputTiff)
 {
     const int buff_size = 4096;
     char buff[buff_size];

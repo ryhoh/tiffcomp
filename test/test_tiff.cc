@@ -4,21 +4,21 @@
 
 TEST(InputTiffTest, loadParamTest)
 {
-    using ryhohTiff::InputTiff;
+    using ryhoh_tiff::InputTiff;
 
     InputTiff *inputTiff = new InputTiff("sample/ex1.tif");
     inputTiff->loadParam();
-    ASSERT_EQ(inputTiff->getParam(ryhohTiff::WIDTH)    , 1600);
-    ASSERT_EQ(inputTiff->getParam(ryhohTiff::HEIGHT)   , 1067);
-    ASSERT_EQ(inputTiff->getParam(ryhohTiff::BIT_DEPTH),    8);
+    ASSERT_EQ(inputTiff->getParam(ryhoh_tiff::WIDTH)    , 1600);
+    ASSERT_EQ(inputTiff->getParam(ryhoh_tiff::HEIGHT)   , 1067);
+    ASSERT_EQ(inputTiff->getParam(ryhoh_tiff::BIT_DEPTH),    8);
 
     delete inputTiff;
 }
 
 TEST(OutputTiffTest, copyWriteFromTest)
 {
-    using ryhohTiff::InputTiff;
-    using ryhohTiff::OutputTiff;
+    using ryhoh_tiff::InputTiff;
+    using ryhoh_tiff::OutputTiff;
 
     InputTiff *inputTiff = new InputTiff("sample/ex1.tif");
     OutputTiff *outputTiff = new OutputTiff(".copyWriteFrom.tif");
