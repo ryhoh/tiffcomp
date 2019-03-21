@@ -1,5 +1,6 @@
 // 作成 - 2019/03/18 Tetsuya Hori
-#include "Tiff.h"
+#include <iostream>
+#include "tiff.h"
 
 
 ryhoh_tiff::InputTiff::InputTiff(const std::string &fileName)

@@ -1,6 +1,6 @@
 // 作成 - 2019/03/18 Tetsuya Hori
 #include <gtest/gtest.h>
-#include "../src/Tiff.h"
+#include "../src/tiff.h"
 
 TEST(InputTiffTest, loadParamTest)
 {

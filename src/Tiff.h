@@ -3,15 +3,14 @@
 #ifndef TIFF_H
 #define TIFF_H
 
-#include <iostream>
 #include <map>
 #include <vector>
 #include <fstream>
 
-const std::string OUTPUT_NAME = "output.tif";
-
 namespace ryhoh_tiff
 {
+    const std::string OUTPUT_NAME = "output.tif";
+    
     // 画像データに関するパラメータ
     const short WIDTH = 0x0100;
     const short HEIGHT = 0x0101;
@@ -51,6 +50,7 @@ namespace ryhoh_tiff
     public:
         InputTiff() = delete;
         InputTiff(const std::string &fileName);
+        InputTiff(const InputTiff &inputTiff) {}
         ~InputTiff();
 
         void loadParam();
@@ -69,6 +69,7 @@ namespace ryhoh_tiff
     public:
         OutputTiff() = delete;
         OutputTiff(const std::string &fileName);
+        OutputTiff(const OutputTiff &outputTiff) {}
         ~OutputTiff();
 
         void copyWriteFrom(InputTiff &inputTiff);
