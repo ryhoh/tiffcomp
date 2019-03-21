@@ -26,4 +26,4 @@ clean:
 	rm -f \
 	test_tiff test_tiffcomp \
 	src/tiff.o src/tiffcomp.o \
-	.copyWriteFrom.tif .runTest.tif
+	.copyWriteFrom.tif .setUpTest.tif .runTest.tif

@@ -10,7 +10,7 @@
 namespace ryhoh_tiff
 {
     const std::string OUTPUT_NAME = "output.tif";
-    
+
     // 画像データに関するパラメータ
     const short WIDTH = 0x0100;
     const short HEIGHT = 0x0101;
@@ -24,15 +24,19 @@ namespace ryhoh_tiff
     {
     private:
         std::map<short, int> param_;
-        std::string fileName_;
+        std::string name_;
     public:
         // Tiff() = delete;
         // Tiff(std::string fileName): fileName(fileName) {}
         Tiff() {}
+        Tiff(std::string &name) { this->name_ = name; }
         virtual ~Tiff() {}
 
-        inline int getParam(int key) { return this->param_[key]; }
-        inline void setParam(int key, int value) { this->param_[key] = value; }
+        inline std::map<short, int> &getParam() { return this->param_; }
+        inline void setParam(std::map<short, int> &param)
+            { this->param_ = param; }
+        inline std::string &getName() { return this->name_; }
+        inline void setName(std::string &name) { this->name_ = name; }
     };
 
 
@@ -49,7 +53,7 @@ namespace ryhoh_tiff
         std::ifstream fin_;
     public:
         InputTiff() = delete;
-        InputTiff(const std::string &fileName);
+        InputTiff(std::string &name);
         InputTiff(const InputTiff &inputTiff) {}
         ~InputTiff();
 
@@ -68,7 +72,7 @@ namespace ryhoh_tiff
         std::ofstream fout_;
     public:
         OutputTiff() = delete;
-        OutputTiff(const std::string &fileName);
+        OutputTiff(std::string &fileName);
         OutputTiff(const OutputTiff &outputTiff) {}
         ~OutputTiff();
 

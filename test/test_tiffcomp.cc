@@ -11,7 +11,7 @@ TEST(CompositeProcessTest, setUpTest)
 
     std::vector<std::string> input_names =
         {"sample/ex1.tif", "sample/ex2.tif", "sample/ex3.tif"};
-    std::string output_name = ".runTest.tif";
+    std::string output_name = ".setUpTest.tif";
 
     CompositeProcess compositeProcess =
         CompositeProcess(output_name, input_names);

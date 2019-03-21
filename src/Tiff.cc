@@ -3,13 +3,13 @@
 #include "tiff.h"
 
 
-ryhoh_tiff::InputTiff::InputTiff(const std::string &fileName)
+ryhoh_tiff::InputTiff::InputTiff(std::string &name): Tiff(name)
 {
-    this->fin_.open(fileName, std::ios::binary);
+    this->fin_.open(name, std::ios::binary);
     if (this->fin_.fail())
     {
         std::cerr
-            << "InputTiff error #1: open \"" + fileName + "\" failed"
+            << "InputTiff error #1: open \"" + name + "\" failed"
             << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -27,11 +27,12 @@ void ryhoh_tiff::InputTiff::loadParam()
     this->fin_.seekg(idf_start, std::ios_base::beg);
     const short idf_entry_num = readShort();
 
+    std::map<short, int> &param = this->getParam();
     for (short entry_i=0; entry_i<idf_entry_num; ++entry_i)
     {
         const short header = readShort();
         this->fin_.seekg(6, std::ios_base::cur);
-        setParam(header, readInt());
+        param[header] = readInt();
     }
 
     this->checkBitDepth();
@@ -39,11 +40,12 @@ void ryhoh_tiff::InputTiff::loadParam()
 
 void ryhoh_tiff::InputTiff::checkBitDepth()
 {
-    const int bitDepth = this->getParam(ryhoh_tiff::BIT_DEPTH);
+    std::map<short, int> &param = this->getParam();
+    const int bitDepth = param[ryhoh_tiff::BIT_DEPTH];
     if (bitDepth < 17) return ;
 
     this->fin_.seekg(bitDepth, std::ios_base::beg);
-    this->setParam(ryhoh_tiff::BIT_DEPTH, readShort());
+    param[ryhoh_tiff::BIT_DEPTH] = readShort();
 }
 
 short ryhoh_tiff::InputTiff::readShort()
@@ -61,7 +63,7 @@ int ryhoh_tiff::InputTiff::readInt()
 }
 
 
-ryhoh_tiff::OutputTiff::OutputTiff(const std::string &fileName)
+ryhoh_tiff::OutputTiff::OutputTiff(std::string &fileName)
 {
     this->fout_.open(fileName, std::ios::binary);
     if (this->fout_.fail())
@@ -85,13 +87,20 @@ void ryhoh_tiff::OutputTiff::copyWriteFrom(ryhoh_tiff::InputTiff &inputTiff)
     std::ifstream &source = inputTiff.getFin();
     source.seekg(0, std::ios_base::beg);
 
+    const auto stream_state = source.rdstate();  // 後で戻す用
+
     while (true)
-    {
+    {   // データ本体のコピー
         source.read(buff, buff_size);
         const auto readSize = source.gcount();
         if (readSize == 0) break;
         this->fout_.write(buff, readSize);
     }
+    // EOFに到達すると内部のbitが立てられ邪魔なので戻す
+    source.clear(stream_state);
+
+    // オブジェクト内のパラメータのコピー
+    this->setParam(inputTiff.getParam());
 }
 
 
