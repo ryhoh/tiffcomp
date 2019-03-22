@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cstring>
 #include "../lib/progress.h"
-#include "tiffcomp.h"
+#include "compositeProcess.h"
 
 ryhoh_tiff::CompositeProcess::CompositeProcess(
     std::string &output_name,
@@ -89,7 +89,6 @@ void ryhoh_tiff::CompositeProcess::run()
     delete res;
 }
 
-// fixme ここで base を [0, pixel_n * 3) でコンポジットすべきだが，一部できていない
 void ryhoh_tiff::CompositeProcess::pile_n_pixels(unsigned char *base, int pixel_n)
 {
     const int byte_n = pixel_n * 3;

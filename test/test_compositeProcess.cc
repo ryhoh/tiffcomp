@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../src/tiff.h"
-#include "../src/tiffcomp.h"
+#include "../src/compositeProcess.h"
 
 TEST(CompositeProcessTest, setUpTest)
 {
@@ -35,6 +35,26 @@ TEST(CompositeProcessTest, runTest)
     CompositeProcess compositeProcess =
         CompositeProcess(output_name, input_names);
 
+    compositeProcess.setUp();
+    compositeProcess.run();
+
+    // .runTest.tif と sample/idealOutput.tif のdiffを取る
+}
+
+TEST(CompositeProcessTest, runTest_non_verbose)
+{
+    using ryhoh_tiff::InputTiff;
+    using ryhoh_tiff::OutputTiff;
+    using ryhoh_tiff::CompositeProcess;
+
+    std::vector<std::string> input_names =
+        {"sample/ex1.tif", "sample/ex2.tif", "sample/ex3.tif"};
+    std::string output_name = ".runTest.tif";
+
+    CompositeProcess compositeProcess =
+        CompositeProcess(output_name, input_names);
+
+    compositeProcess.setVerbose(false);  // プログレスバーが出ないことを確認すること
     compositeProcess.setUp();
     compositeProcess.run();
 
