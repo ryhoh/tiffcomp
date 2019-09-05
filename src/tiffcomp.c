@@ -229,7 +229,12 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 	const int jobe = JOBE * 3;
 	const int phaze = pixNum / JOB;		// 総フェーズ数
 	
-	unsigned char array[JOB * 3] = {0};	// 色データを格納
+	unsigned char *array = (unsigned char *)calloc(JOB * 3, sizeof(unsigned char));
+	if (array == NULL) {
+		printf("array calloc error");
+		exit(1);
+	}
+	// unsigned char array[JOB * 3] = {};	// 色データを格納
 	
 	/* 作業開始前に1度プログレスバーを見せておく */
 	if(simpleProgress(i, phaze))	// 何フェーズ終わったか == 全体のうちiフェーズ終わった
@@ -281,6 +286,7 @@ int checkPixel(TIFF image[], FILE *fpw, int fileNum){
 		return 1;
 	printf("additional phaze end\n");
 	
+	free(array);
 	return 0;
 }
 
@@ -300,7 +306,11 @@ int checkPixel16(TIFF image[], FILE *fpw, int fileNum){
 	const int phaze = pixNum / JOB;		// 総フェーズ数
 	const int arraySize = job / BYTENUM;
 	
-	unsigned short array[arraySize] = {0};	// 色データを格納
+	unsigned short *array = (unsigned short *)calloc(arraySize, sizeof(unsigned short));	// 色データを格納
+	if (array == NULL) {
+		printf("array calloc error");
+		exit(1);
+	}
 	
 	/* 作業開始前に1度プログレスバーを見せておく */
 	if(simpleProgress(i, phaze))	// 何フェーズ終わったか == 全体のうちiフェーズ終わった
@@ -353,6 +363,7 @@ int checkPixel16(TIFF image[], FILE *fpw, int fileNum){
 		return 1;
 	printf("additional phaze end\n");
 	
+	free(array);
 	return 0;
 }
 
